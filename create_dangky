@@ -1,0 +1,50 @@
+<?php
+include 'config.php';
+include 'header.php';
+
+// Xử lý khi người dùng nhấn "Thêm"
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $MaSV = $_POST['MaSV'];
+    $MaHP = $_POST['MaHP'];
+    $NgayDK = date("Y-m-d");
+
+    // Thêm vào bảng Đăng Ký
+    $conn->query("INSERT INTO DangKy (NgayDK, MaSV) VALUES ('$NgayDK', '$MaSV')");
+    $MaDK = $conn->insert_id;  // Lấy ID của đăng ký vừa tạo
+
+    // Thêm vào bảng Chi Tiết Đăng Ký
+    $conn->query("INSERT INTO ChiTietDangKy (MaDK, MaHP) VALUES ('$MaDK', '$MaHP')");
+
+    header("Location: dangky.php");
+}
+
+// Lấy danh sách sinh viên
+$sinhvien = $conn->query("SELECT * FROM SinhVien");
+// Lấy danh sách học phần
+$hocphan = $conn->query("SELECT * FROM HocPhan");
+?>
+
+<div class="container mt-5">
+    <h2 class="text-center">Thêm Đăng Ký Học Phần</h2>
+    <form method="POST" class="p-4 border rounded">
+        <div class="mb-3">
+            <label class="form-label">Sinh Viên</label>
+            <select name="MaSV" class="form-select">
+                <?php while ($row = $sinhvien->fetch_assoc()) { ?>
+                    <option value="<?php echo $row['MaSV']; ?>"><?php echo $row['HoTen']; ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Học Phần</label>
+            <select name="MaHP" class="form-select">
+                <?php while ($row = $hocphan->fetch_assoc()) { ?>
+                    <option value="<?php echo $row['MaHP']; ?>"><?php echo $row['TenHP']; ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Thêm</button>
+    </form>
+</div>
+
+<?php include 'footer.php'; ?>
