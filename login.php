@@ -1,46 +1,47 @@
 <?php
 session_start();
-include 'config.php'; // Kết nối CSDL
+require 'config.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $maSV = $_POST["maSV"]; // Chỉ lấy mã sinh viên
+$error = '';
 
-    // Kiểm tra xem mã sinh viên có tồn tại không
-    $sql = "SELECT * FROM SinhVien WHERE MaSV = '$maSV'";
-    $result = $conn->query($sql);
+// Xử lý khi form được submit
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Lấy MSSV từ form, loại bỏ khoảng trắng dư
+    $MaSV = trim($_POST['MaSV'] ?? '');
 
-    if ($result->num_rows > 0) {
-        $_SESSION['maSV'] = $maSV; // Lưu mã sinh viên vào session
-        header("Location: hocphan.php"); // Chuyển hướng về trang chủ
-        exit();
+    if (empty($MaSV)) {
+        $error = "Vui lòng nhập MSSV.";
     } else {
-        $error = "Mã sinh viên không tồn tại!";
+        // Kiểm tra MSSV trong bảng SinhVien
+        $sql = "SELECT * FROM SinhVien WHERE MaSV = '$MaSV'";
+        $result = $conn->query($sql);
+        if ($result && $result->num_rows > 0) {
+            // Nếu tìm thấy, lưu thông tin đăng nhập vào session
+            $_SESSION['MaSV'] = $MaSV;
+            header("Location: index.php");
+            exit();
+        } else {
+            $error = "MSSV không tồn tại!";
+        }
     }
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Đăng nhập</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-5">
-        <h2 class="text-center">Đăng nhập</h2>
+<?php include 'header.php'; ?>
+<h1 class="mb-4">Đăng nhập</h1>
 
-        <?php if (isset($error)) { ?>
-            <div class="alert alert-danger"><?php echo $error; ?></div>
-        <?php } ?>
+<?php if ($error): ?>
+    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+<?php endif; ?>
 
-        <form method="POST">
-            <div class="mb-3">
-                <label for="maSV" class="form-label">Mã Sinh Viên</label>
-                <input type="text" class="form-control" id="maSV" name="maSV" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Đăng Nhập</button>
-        </form>
+<form method="POST" class="row g-3" style="max-width: 400px;">
+    <div class="col-12">
+        <label class="form-label">MSSV:</label>
+        <input type="text" name="MaSV" class="form-control" required>
     </div>
-</body>
-</html>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Đăng nhập</button>
+    </div>
+</form>
+
+<?php include 'footer.php'; ?>
